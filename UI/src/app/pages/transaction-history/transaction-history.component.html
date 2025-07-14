@@ -1,0 +1,40 @@
+<div class="transaction-history-container">
+  <h2>Transaction History</h2>
+  
+  <!-- Type Selection Buttons -->
+  <div class="type-selector">
+    <button 
+      [class.active]="selectedType === TransactionType.Investment"
+      (click)="switchType(TransactionType.Investment)">
+      Invested Details
+    </button>
+    <button 
+      [class.active]="selectedType === TransactionType.Goal"
+      (click)="switchType(TransactionType.Goal)">
+      Goals Details
+    </button>
+  </div>
+
+  <!-- Transactions Table -->
+  <table class="table">
+    <thead>
+      <tr>
+        <th>{{ selectedType === TransactionType.Investment ? 'Plan Name' : 'Goal Name' }}</th>
+        <th>Amount</th>
+        <th>Percentage</th>
+        <th>Time</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let transaction of transactions">
+        <td>{{ selectedType === TransactionType.Investment ? transaction.planName : transaction.goalName }}</td>
+        <td>{{ transaction.amount | currency }}</td>
+        <td>{{ transaction.percentage }}%</td>
+        <td>{{ transaction.timestamp | date:'medium' }}</td>
+      </tr>
+      <tr *ngIf="transactions.length === 0">
+        <td colspan="4" class="no-data">No transactions found</td>
+      </tr>
+    </tbody>
+  </table>
+</div>

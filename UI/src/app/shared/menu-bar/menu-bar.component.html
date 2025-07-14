@@ -1,0 +1,192 @@
+<nav class="menu-bar">
+  <div class="menu-items">
+    <button (click)="openCard('profile')" class="menu-item">Profile</button>
+    <button (click)="openCard('totals')" class="menu-item">Totals</button>
+    <button (click)="openCard('editMaster')" class="menu-item">Edit Master</button>
+    <button (click)="openCard('history')" class="menu-item">Transaction History</button>
+    <button (click)="logout()" class="menu-item logout">Logout</button>
+  </div>
+</nav>
+
+<!-- Overlay card -->
+<div class="card-overlay" *ngIf="showCard" (click)="closeCard()">
+  <div class="card" (click)="$event.stopPropagation()">
+    <button class="close-btn" (click)="closeCard()">×</button>
+
+    <!-- Loading State -->
+    <div *ngIf="isLoading" class="loading-state">
+      <p>Loading...</p>
+    </div>
+
+    <!-- Error State -->
+    <div *ngIf="error" class="error-state">
+      <p>{{ error }}</p>
+      <button (click)="loadSummary()" class="retry-btn">Retry</button>
+    </div>
+
+    <!-- Profile Card -->
+    <div *ngIf="cardType === 'profile' && !isLoading && !error" class="card-content">
+      <h2>Profile</h2>
+      <div class="profile-info">
+        <p>Username: {{ username }}</p>
+      </div>
+    </div>
+
+    <!-- Totals Card -->
+    <div *ngIf="cardType === 'totals' && !isLoading && !error" class="card-content">
+      <h2>Totals</h2>
+      
+      <div class="totals-options">
+        <button (click)="subType = 'invested'" [class.active]="subType === 'invested'">Invested Details</button>
+        <button (click)="subType = 'goals'" [class.active]="subType === 'goals'">Goals Details</button>
+      </div>
+
+      <!-- Invested Details -->
+      <div *ngIf="subType === 'invested'">
+        <table>
+          <thead>
+            <tr>
+              <th>Plan Name</th>
+              <th>Amount</th>
+              <th>Percentage</th>
+              <th>Date</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let detail of investedSummary">
+              <td>{{ detail.name }}</td>
+              <td>{{ detail.amount | currency }}</td>
+              <td>{{ detail.percentage }}%</td>
+              <td>{{ detail.timestamp | date:'medium' }}</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="total-amount">
+          Total Invested Amount: {{ totalInvestedAmount | currency }}
+        </div>
+      </div>
+
+      <!-- Goals Details -->
+      <div *ngIf="subType === 'goals'">
+        <table>
+          <thead>
+            <tr>
+              <th>Goal Name</th>
+              <th>Amount</th>
+              <th>Percentage</th>
+              <th>Date</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let detail of goalsSummary">
+              <td>{{ detail.name }}</td>
+              <td>{{ detail.amount | currency }}</td>
+              <td>{{ detail.percentage }}%</td>
+              <td>{{ detail.timestamp | date:'medium' }}</td>
+            </tr>
+          </tbody>
+        </table>
+        <div class="total-amount">
+          Total Goals Amount: {{ totalGoalsAmount | currency }}
+        </div>
+      </div>
+    </div>
+
+    <!-- Transaction History Card -->
+    <div *ngIf="cardType === 'history' && !isLoading && !error" class="card-content">
+      <h2>Transaction History</h2>
+      
+      <div class="history-options">
+        <button (click)="subType = 'invested'" [class.active]="subType === 'invested'">Invested History</button>
+        <button (click)="subType = 'goals'" [class.active]="subType === 'goals'">Goals History</button>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>{{ subType === 'invested' ? 'Plan Name' : 'Goal Name' }}</th>
+            <th>Amount</th>
+            <th>Percentage</th>
+            <th>Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr *ngFor="let detail of (subType === 'invested' ? investedDetails : goalsDetails)">
+            <td>{{ subType === 'invested' ? detail.planName : detail.goalName }}</td>
+            <td>{{ detail.amount | currency }}</td>
+            <td>{{ detail.percentage }}%</td>
+            <td>{{ detail.timestamp | date:'medium' }}</td>
+          </tr>
+          <tr *ngIf="(subType === 'invested' ? investedDetails : goalsDetails).length === 0">
+            <td colspan="4" class="no-data">No transactions found</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Edit Master Card -->
+    <div *ngIf="cardType === 'editMaster'" class="card-content">
+      <h2>Edit Master Data</h2>
+      
+      <div class="master-sections-container">
+        <div class="master-section">
+          <h3>Investment Assets</h3>
+          <!-- Add new asset -->
+          <div class="add-form">
+            <input type="text" [(ngModel)]="newAssetName" placeholder="New asset name">
+            <button (click)="addAsset()">Add Asset</button>
+          </div>
+          
+          <!-- Assets list -->
+          <div class="master-list">
+            <div *ngFor="let asset of masterAssets" class="master-item">
+              <div *ngIf="!editMode[asset.id]" class="item-view">
+                <span>{{ asset.name }}</span>
+                <div class="item-actions">
+                  <button (click)="editMode[asset.id] = true">Edit</button>
+                  <button (click)="deleteAsset(asset.id)" class="delete">Delete</button>
+                </div>
+              </div>
+              <div *ngIf="editMode[asset.id]" class="item-edit">
+                <input type="text" [(ngModel)]="asset.name">
+                <div class="item-actions">
+                  <button (click)="updateAsset(asset)">Save</button>
+                  <button (click)="editMode[asset.id] = false">Cancel</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="master-section">
+          <h3>Goals</h3>
+          <!-- Add new goal -->
+          <div class="add-form">
+            <input type="text" [(ngModel)]="newGoalName" placeholder="New goal name">
+            <button (click)="addGoal()">Add Goal</button>
+          </div>
+          
+          <!-- Goals list -->
+          <div class="master-list">
+            <div *ngFor="let goal of masterGoals" class="master-item">
+              <div *ngIf="!editMode[goal.id]" class="item-view">
+                <span>{{ goal.name }}</span>
+                <div class="item-actions">
+                  <button (click)="editMode[goal.id] = true">Edit</button>
+                  <button (click)="deleteGoal(goal.id)" class="delete">Delete</button>
+                </div>
+              </div>
+              <div *ngIf="editMode[goal.id]" class="item-edit">
+                <input type="text" [(ngModel)]="goal.name">
+                <div class="item-actions">
+                  <button (click)="updateGoal(goal)">Save</button>
+                  <button (click)="editMode[goal.id] = false">Cancel</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

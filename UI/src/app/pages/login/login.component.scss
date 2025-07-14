@@ -1,0 +1,59 @@
+// Elegant gradient background for login page
+.login-container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(135deg, #f2f4f7 0%, #4e2b4d 100%);
+}
+
+form {
+  background: linear-gradient(135deg, #dbe4e7 0%, #c9b5c9 100%);
+  padding: 2rem;
+  border-radius: 12px;
+  box-shadow: 5px 4px 24px rgba(7, 64, 235, 0.1);
+  width: 320px;
+}
+
+.form-group {
+  margin-bottom: 1.5rem;
+}
+
+label {
+  color: #2d2a2a;
+  font-weight: 600;
+}
+
+input.form-control {
+  width: 100%;
+  padding: 0.5rem;
+  border-radius: 6px;
+  border: none;
+  margin-top: 0.5rem;
+}
+
+.btn-primary {
+  background: linear-gradient(90deg, #f7971e 0%, #ffd200 100%);
+  color: #333;
+  border: none;
+  padding: 0.75rem 1.5rem;
+  border-radius: 6px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.btn-primary:hover {
+  background: linear-gradient(90deg, #ffd200 0%, #f7971e 100%);
+}
+
+.error {
+  color: #ffd200;
+  margin-top: 1rem;
+  font-weight: bold;
+}
+
+#username {
+  color: rgb(105, 105, 105);
+}

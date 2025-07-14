@@ -1,0 +1,40 @@
+<div class="totals-container">
+  <h2>Totals</h2>
+  <div *ngIf="totals">
+    <h3>Invested Details</h3>
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Asset</th>
+          <th>Amount</th>
+          <th>Percentage</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let invested of totals.invested">
+          <td>{{ invested.name }}</td>
+          <td>{{ invested.amount }}</td>
+          <td>{{ invested.percentage }}%</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <h3>Goals Details</h3>
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Goal</th>
+          <th>Amount</th>
+          <th>Percentage</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let goal of totals.goals">
+          <td>{{ goal.name }}</td>
+          <td>{{ goal.amount }}</td>
+          <td>{{ goal.percentage }}%</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

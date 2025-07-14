@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "rJjrUynPDFg=",
+  "dgSpecHash": "FnzkMZwdylY=",
   "success": true,
-  "projectFilePath": "C:\\PortfolioManagement\\Server\\Server.csproj",
+  "projectFilePath": "C:\\Users\\noor7\\source\\repos\\Portfolio-E2E-Web-Application\\EndToEnd-PortfolioManagement\\Server\\Server.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\noor7\\.nuget\\packages\\azure.core\\1.38.0\\azure.core.1.38.0.nupkg.sha512",
     "C:\\Users\\noor7\\.nuget\\packages\\azure.identity\\1.11.4\\azure.identity.1.11.4.nupkg.sha512",

@@ -67,30 +67,73 @@ namespace Server.Controllers
         [HttpPut("assets/{id}")]
         public async Task<IActionResult> UpdateAsset(int id, [FromBody] MasterAsset asset)
         {
-            var existingAsset = await _context.MasterAssets.FindAsync(id);
-            if (existingAsset == null)
-                return NotFound();
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                var existingAsset = await _context.MasterAssets.FindAsync(id);
+                if (existingAsset == null)
+                    return NotFound();
 
-            existingAsset.Name = asset.Name;
-            existingAsset.IsActive = asset.IsActive;
-            await _context.SaveChangesAsync();
-            return Ok(existingAsset);
+                var oldName = existingAsset.Name;
+                existingAsset.Name = asset.Name;
+                existingAsset.IsActive = asset.IsActive;
+
+                // Update all investment transactions with this asset name
+                var transactions = await _context.InvestmentTransactions
+                    .Where(t => t.PlanName == oldName)
+                    .ToListAsync();
+
+                foreach (var trans in transactions)
+                {
+                    trans.PlanName = asset.Name;
+                }
+
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+                return Ok(existingAsset);
+            }
+            catch (Exception)
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
         }
 
         // Update goal
         [HttpPut("goals/{id}")]
         public async Task<IActionResult> UpdateGoal(int id, [FromBody] MasterGoal goal)
         {
-            var existingGoal = await _context.MasterGoals.FindAsync(id);
-            if (existingGoal == null)
-                return NotFound();
+            using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                var existingGoal = await _context.MasterGoals.FindAsync(id);
+                if (existingGoal == null)
+                    return NotFound();
 
-            existingGoal.GoalName = goal.GoalName;
-            existingGoal.IsActive = goal.IsActive;
-            await _context.SaveChangesAsync();
-            return Ok(existingGoal);
+                var oldName = existingGoal.GoalName;
+                existingGoal.GoalName = goal.GoalName;
+                existingGoal.IsActive = goal.IsActive;
+
+                // Update all goal transactions with this goal name
+                var transactions = await _context.GoalTransactions
+                    .Where(t => t.GoalName == oldName)
+                    .ToListAsync();
+
+                foreach (var trans in transactions)
+                {
+                    trans.GoalName = goal.GoalName;
+                }
+
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+                return Ok(existingGoal);
+            }
+            catch (Exception)
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
         }
-
         // Delete asset (soft delete)
         [HttpDelete("assets/{id}")]
         public async Task<IActionResult> DeleteAsset(int id)
