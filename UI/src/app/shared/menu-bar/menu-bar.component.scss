@@ -10,28 +10,85 @@ label {
 
 .menu-items {
   display: flex;
-  justify-content: space-around;
+  justify-content: space-between;
   align-items: center;
   max-width: 1200px;
   margin: 0 auto;
+  padding: 0.5rem;
+  gap: 1px;  // Space for dividers
+  position: relative;
+  
+  // Container background for better visual separation
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  backdrop-filter: blur(5px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+
+  // Add a nested container for centered menu items
+  .centered-items {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 1px;
+    flex-grow: 1;
+  }
 }
 
 .menu-item {
-  padding: 0.5rem 1rem;
+  padding: 0.8rem 1.5rem;
   border: none;
   background: transparent;
   color: #fff;
-  font-weight: 500;
+  font-weight: 600;
+  font-size: 1rem;
   cursor: pointer;
   transition: all 0.3s ease;
+  position: relative;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 
+  // Add divider after each menu item except the last one
+  &:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    height: 60%;
+    width: 1px;
+    background: linear-gradient(
+      to bottom,
+      transparent,
+      rgba(255, 255, 255, 0.5),
+      transparent
+    );
+  }
+
+  // Hover effect
   &:hover {
     transform: translateY(-2px);
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+    background: rgba(255, 255, 255, 0.1);
+  }
+
+  // Active state
+  &:active {
+    transform: translateY(1px);
   }
 
   &.logout {
-    background: rgba(255, 255, 255, 0.1);
+    background: rgba(220, 53, 69, 0.2);
     border-radius: 4px;
+    margin-left: auto; // Push to the right
+    
+    &:hover {
+      background: rgba(220, 53, 69, 0.3);
+    }
+
+    // Remove divider before logout button
+    &::before {
+      display: none;
+    }
   }
 }
 
@@ -73,6 +130,263 @@ label {
 
   &:hover {
     color: #333;
+  }
+}
+
+// Profile Card Styles
+.profile-card {
+  .profile-container {
+    display: flex;
+    gap: 2rem;
+    padding: 1rem;
+    
+    @media (max-width: 768px) {
+      flex-direction: column;
+      align-items: center;
+    }
+  }
+
+  .profile-photo-section {
+    flex-shrink: 0;
+  }
+
+  .photo-container {
+    position: relative;
+    width: 200px;
+    height: 200px;
+    border-radius: 50%;
+    overflow: hidden;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    
+    &:hover .photo-overlay {
+      opacity: 1;
+    }
+  }
+
+  .profile-photo {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .photo-overlay {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: rgba(0, 0, 0, 0.7);
+    padding: 1rem;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    display: flex;
+    justify-content: center;
+  }
+
+  .change-photo-btn {
+    background: #fff;
+    color: #333;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+
+    &:hover {
+      background: #f0f0f0;
+    }
+  }
+
+  .file-input {
+    display: none;
+  }
+
+  .profile-details {
+    flex-grow: 1;
+  }
+
+  .profile-fields {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+
+    .field {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+
+      label {
+        font-weight: 600;
+        color: #666;
+        font-size: 0.9rem;
+      }
+
+      span {
+        color: #333;
+        font-size: 1.1rem;
+      }
+
+      input {
+        padding: 0.75rem;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 1rem;
+        transition: border-color 0.3s ease;
+
+        &:focus {
+          outline: none;
+          border-color: #4e2b4d;
+          box-shadow: 0 0 0 2px rgba(78, 43, 77, 0.1);
+        }
+      }
+    }
+  }
+
+  .profile-actions {
+    margin-top: 2rem;
+    display: flex;
+    gap: 1rem;
+
+    button {
+      padding: 0.75rem 1.5rem;
+      border: none;
+      border-radius: 4px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s ease;
+
+      &.edit-btn {
+        background: #4e2b4d;
+        color: white;
+
+        &:hover {
+          background: darken(#4e2b4d, 10%);
+        }
+      }
+
+      &.save-btn {
+        background: #28a745;
+        color: white;
+
+        &:hover {
+          background: darken(#28a745, 10%);
+        }
+      }
+
+      &.cancel-btn {
+        background: #dc3545;
+        color: white;
+
+        &:hover {
+          background: darken(#dc3545, 10%);
+        }
+      }
+    }
+  }
+
+  .danger-zone {
+    margin-top: 2rem;
+    padding-top: 2rem;
+    border-top: 1px solid #eee;
+
+    h3 {
+      color: #dc3545;
+      margin-bottom: 1rem;
+    }
+
+    .clear-data-btn {
+      width: 100%;
+      padding: 1rem;
+      border: none;
+      border-radius: 4px;
+      font-weight: 600;
+      cursor: pointer;
+      background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+      color: white;
+      transition: all 0.3s ease;
+
+      &:hover {
+        background: linear-gradient(135deg, #c82333 0%, #bd2130 100%);
+        transform: translateY(-1px);
+        box-shadow: 0 2px 4px rgba(220, 53, 69, 0.2);
+      }
+    }
+  }
+
+  .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1100;
+  }
+
+  .modal-content {
+    background: white;
+    padding: 2rem;
+    border-radius: 8px;
+    max-width: 500px;
+    width: 90%;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+
+    h3 {
+      color: #dc3545;
+      margin-bottom: 1rem;
+    }
+
+    ul {
+      margin: 1rem 0;
+      padding-left: 1.5rem;
+
+      li {
+        margin-bottom: 0.5rem;
+        color: #666;
+      }
+    }
+
+    .warning-text {
+      color: #dc3545;
+      font-weight: 600;
+      margin: 1rem 0;
+    }
+
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 1rem;
+      margin-top: 2rem;
+
+      button {
+        padding: 0.75rem 1.5rem;
+        border: none;
+        border-radius: 4px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+
+        &.modal-cancel {
+          background: #6c757d;
+          color: white;
+
+          &:hover {
+            background: darken(#6c757d, 10%);
+          }
+        }
+
+        &.modal-confirm {
+          background: linear-gradient(135deg, #dc3545 0%, #c82333 100%);
+          color: white;
+
+          &:hover {
+            background: linear-gradient(135deg, #c82333 0%, #bd2130 100%);
+          }
+        }
+      }
+    }
   }
 }
 

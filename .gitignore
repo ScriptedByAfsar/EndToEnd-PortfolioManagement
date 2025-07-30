@@ -41,3 +41,18 @@ testem.log
 # System files
 .DS_Store
 Thumbs.db
+
+# Visual Studio files
+.vs/
+*.suo
+*.user
+*.config.user
+*.resharper
+[Bb]in/
+[Oo]bj/
+[Dd]ebug/
+[Rr]elease/
+*.dll
+*.pdb
+*.exe
+*.log

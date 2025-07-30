@@ -43,7 +43,17 @@ export class MenuBarComponent {
   showCard = false;
   cardType: string = '';
   subType: string = '';
-  username: string = 'Afsar';
+  // Profile data
+  profile = {
+    username: 'Afsar',
+    email: '',
+    mobile: '',
+    photoUrl: 'assets/default-profile.png'
+  };
+  isEditingProfile = false;
+  tempProfile = { ...this.profile };
+  fileInput?: HTMLInputElement;
+  showClearDataModal = false;
 
   // For Transaction History
   investedDetails: Transaction[] = [];
@@ -68,7 +78,15 @@ export class MenuBarComponent {
   editMode: { [key: number]: boolean } = {};
 
   ngOnInit() {
-    if (this.cardType === 'totals') {
+    // Load cached profile if available
+    const cachedProfile = this.storageService.getProfile();
+    if (cachedProfile) {
+      this.profile = cachedProfile;
+    }
+
+    if (this.cardType === 'profile') {
+      this.loadProfile();
+    } else if (this.cardType === 'totals') {
       this.loadSummary();
     } else if (this.cardType === 'history') {
       this.loadTransactionHistory();
@@ -164,6 +182,124 @@ export class MenuBarComponent {
         console.error('Error loading transactions:', err);
         this.error = 'Failed to load transaction history. Please try again.';
         this.isLoading = false;
+      }
+    });
+  }
+
+  // Profile management methods
+  startEditingProfile() {
+    this.tempProfile = { ...this.profile };
+    this.isEditingProfile = true;
+  }
+
+  cancelEditProfile() {
+    this.tempProfile = { ...this.profile };
+    this.isEditingProfile = false;
+  }
+
+  loadProfile() {
+    this.isLoading = true;
+    this.error = null;
+
+    this.authService.getProfile().subscribe({
+      next: (response) => {
+        if (response.isSuccess && response.data) {
+          this.profile = {
+            username: response.data.username,
+            email: response.data.email || '',
+            mobile: response.data.mobile || '',
+            photoUrl: response.data.profilePhotoBase64 || 'assets/default-profile.png'
+          };
+          this.storageService.setProfile(this.profile);
+        }
+        this.isLoading = false;
+      },
+      error: (err) => {
+        console.error('Error loading profile:', err);
+        this.error = 'Failed to load profile. Please try again.';
+        this.isLoading = false;
+      }
+    });
+  }
+
+  saveProfile() {
+    this.isLoading = true;
+    this.error = null;
+
+    const formData = new FormData();
+    formData.append('email', this.tempProfile.email);
+    formData.append('mobile', this.tempProfile.mobile);
+
+    if (this.tempProfile.photoUrl && this.tempProfile.photoUrl.startsWith('data:')) {
+      // Convert base64 to file
+      const byteString = atob(this.tempProfile.photoUrl.split(',')[1]);
+      const mimeType = this.tempProfile.photoUrl.split(',')[0].split(':')[1].split(';')[0];
+      const ab = new ArrayBuffer(byteString.length);
+      const ia = new Uint8Array(ab);
+      for (let i = 0; i < byteString.length; i++) {
+        ia[i] = byteString.charCodeAt(i);
+      }
+      const blob = new Blob([ab], { type: mimeType });
+      formData.append('profilePhoto', blob, 'profile-photo.' + mimeType.split('/')[1]);
+    }
+
+    this.authService.updateProfile(formData).subscribe({
+      next: (response) => {
+        if (response.isSuccess) {
+          this.profile = { ...this.tempProfile };
+          this.storageService.setProfile(this.profile);
+          this.isEditingProfile = false;
+        }
+        this.isLoading = false;
+      },
+      error: (err) => {
+        console.error('Error updating profile:', err);
+        this.error = 'Failed to update profile. Please try again.';
+        this.isLoading = false;
+      }
+    });
+  }
+
+  onPhotoSelected(event: Event) {
+    const input = event.target as HTMLInputElement;
+    if (input.files && input.files[0]) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        if (e.target?.result) {
+          this.tempProfile.photoUrl = e.target.result as string;
+        }
+      };
+      reader.readAsDataURL(input.files[0]);
+    }
+  }
+
+  showClearDataConfirmation() {
+    this.showClearDataModal = true;
+  }
+
+  cancelClearData() {
+    this.showClearDataModal = false;
+  }
+
+  confirmClearData() {
+    this.isLoading = true;
+    this.error = null;
+
+    this.authService.clearAllData().subscribe({
+      next: (response) => {
+        if (response.isSuccess) {
+          // Clear local storage and state
+          this.storageService.clear();
+          this.router.navigate(['/login']);
+        }
+        this.isLoading = false;
+        this.showClearDataModal = false;
+      },
+      error: (err) => {
+        console.error('Error clearing data:', err);
+        this.error = 'Failed to clear data. Please try again.';
+        this.isLoading = false;
+        this.showClearDataModal = false;
       }
     });
   }
@@ -289,7 +425,9 @@ export class MenuBarComponent {
     this.subType = subType || 'invested';
     this.showCard = true;
     
-    if (type === 'totals') {
+    if (type === 'profile') {
+      this.loadProfile();
+    } else if (type === 'totals') {
       this.loadSummary();
     } else if (type === 'history') {
       this.loadTransactionHistory();

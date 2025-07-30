@@ -69,7 +69,6 @@ export class GoalsComponent implements OnInit {
 
   onSubmit(): void {
     if (this.isSaving) return;
-    this.isSaving = true;
 
     // Get selected goals with amounts
     const selectedGoals = this.goals
@@ -85,6 +84,15 @@ export class GoalsComponent implements OnInit {
     // Calculate totals
     const totalInvested = investedAssets.reduce((sum, asset) => sum + parseFloat(asset.amount), 0);
     const totalGoals = selectedGoals.reduce((sum, goal) => sum + goal.amount, 0);
+
+    // Validate that total goals amount matches total invested amount
+    if (totalGoals !== totalInvested) {
+      this.error = `Total goals amount must equal total invested amount (${totalInvested}). Current total: ${totalGoals}`;
+      return;
+    }
+    
+    this.error = null;
+    this.isSaving = true;
 
     // Create transactions for investments
     const investmentTransactions = investedAssets.map(asset => ({

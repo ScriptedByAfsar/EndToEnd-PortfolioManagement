@@ -481,10 +481,10 @@ C:\Users\noor7\source\repos\Portfolio-E2E-Web-Application\EndToEnd-PortfolioMana
 C:\Users\noor7\source\repos\Portfolio-E2E-Web-Application\EndToEnd-PortfolioManagement\Server\obj\Debug\net9.0\staticwebassets.build.json.cache
 C:\Users\noor7\source\repos\Portfolio-E2E-Web-Application\EndToEnd-PortfolioManagement\Server\obj\Debug\net9.0\staticwebassets.development.json
 C:\Users\noor7\source\repos\Portfolio-E2E-Web-Application\EndToEnd-PortfolioManagement\Server\obj\Debug\net9.0\staticwebassets.build.endpoints.json
-C:\Users\noor7\source\repos\Portfolio-E2E-Web-Application\EndToEnd-PortfolioManagement\Server\obj\Debug\net9.0\staticwebassets.upToDateCheck.txt
 C:\Users\noor7\source\repos\Portfolio-E2E-Web-Application\EndToEnd-PortfolioManagement\Server\obj\Debug\net9.0\Server.csproj.Up2Date
 C:\Users\noor7\source\repos\Portfolio-E2E-Web-Application\EndToEnd-PortfolioManagement\Server\obj\Debug\net9.0\Server.dll
 C:\Users\noor7\source\repos\Portfolio-E2E-Web-Application\EndToEnd-PortfolioManagement\Server\obj\Debug\net9.0\refint\Server.dll
 C:\Users\noor7\source\repos\Portfolio-E2E-Web-Application\EndToEnd-PortfolioManagement\Server\obj\Debug\net9.0\Server.pdb
 C:\Users\noor7\source\repos\Portfolio-E2E-Web-Application\EndToEnd-PortfolioManagement\Server\obj\Debug\net9.0\Server.genruntimeconfig.cache
 C:\Users\noor7\source\repos\Portfolio-E2E-Web-Application\EndToEnd-PortfolioManagement\Server\obj\Debug\net9.0\ref\Server.dll
+C:\Users\noor7\source\repos\Portfolio-E2E-Web-Application\EndToEnd-PortfolioManagement\Server\obj\Debug\net9.0\staticwebassets.upToDateCheck.txt

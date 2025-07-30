@@ -1,19 +1,21 @@
-<div class="goals-container">
-  <h2>Goals Page</h2>
+<div class="page-container">
+  <div class="content-wrapper">
+    <div class="goals-container">
+      <h2>Goals Page</h2>
 
-  <!-- Loading State -->
-  <div *ngIf="isLoading" class="loading-state">
-    <p>Loading goals...</p>
-  </div>
+      <!-- Loading State -->
+      <div *ngIf="isLoading" class="loading-state">
+        <p>Loading goals...</p>
+      </div>
 
-  <!-- Error State -->
-  <div *ngIf="error" class="error-state">
-    <p>{{ error }}</p>
-    <button (click)="loadGoals()" class="retry-btn">Retry</button>
-  </div>
+      <!-- Loading Error State -->
+      <div *ngIf="error && isLoading" class="error-state">
+        <p>{{ error }}</p>
+        <button (click)="loadGoals()" class="retry-btn">Retry</button>
+      </div>
 
-  <!-- Form -->
-  <form *ngIf="!isLoading && !error" (ngSubmit)="onSubmit()" [formGroup]="goalsForm">
+      <!-- Form -->
+      <form *ngIf="!isLoading" (ngSubmit)="onSubmit()" [formGroup]="goalsForm">
     <div *ngFor="let goal of goals" class="form-group">
       <label>
         <input type="checkbox" [formControlName]="goal.goalname" />
@@ -27,6 +29,12 @@
         [formControlName]="goal.amountControl"
         [attr.disabled]="isSaving ? '' : null" />
     </div>
+    
+    <!-- Validation Error State -->
+    <div *ngIf="error && !isLoading" class="validation-error">
+      <p>{{ error }}</p>
+    </div>
+
     <div class="actions">
       <button type="button" class="back-button" (click)="router.navigate(['/main'])">Back to Main Page</button>
       <button type="submit" class="btn btn-primary" [disabled]="isLoading || isSaving">

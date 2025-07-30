@@ -22,10 +22,21 @@ export class AuthService {
   }
 
   login(username: string, password: string): Observable<any> {
-    return this.http.post(`${this.apiUrl}/login`, { username, password }).pipe(
-      tap(() => {
+    return this.http.post<{isSuccess: boolean; message: string; data: any}>(`${this.apiUrl}/login`, { username, password }).pipe(
+      tap((response) => {
         this.isLoggedIn = true;
         this.storageService.setUsername(username);
+        
+        // Store profile data if available in response
+        if (response.data) {
+          const profileData = {
+            username: response.data.username || username,
+            email: response.data.email || '',
+            mobile: response.data.mobile || '',
+            photoUrl: response.data.profilePhotoBase64 || 'assets/default-profile.png'
+          };
+          this.storageService.setProfile(profileData);
+        }
       })
     );
   }
@@ -93,6 +104,24 @@ export class AuthService {
   // Update goal
   updateGoal(id: number, name: string, isActive: boolean): Observable<any> {
     return this.http.put(`${this.masterDataApiUrl}/goals/${id}`, { id, name, isActive });
+  }
+
+  // Profile Management
+  getProfile(): Observable<any> {
+    return this.http.get(`${this.apiUrl}/profile`);
+  }
+
+  updateProfile(formData: FormData): Observable<any> {
+    return this.http.put(`${this.apiUrl}/profile`, formData);
+  }
+
+  clearAllData(): Observable<any> {
+    return this.http.post(`${this.apiUrl}/clear-all-data`, {}).pipe(
+      tap(() => {
+        this.storageService.clear();
+        this.isLoggedIn = false;
+      })
+    );
   }
 
   // Delete asset

@@ -66,7 +66,15 @@ export class InvestedComponent implements OnInit {
         assetname: asset.assetname,
         amount: this.investedForm.get(asset.amountControl)?.value
       }));
+    const totalAmount = selectedAssets.reduce((sum, asset) => sum + parseFloat(asset.amount || '0'), 0);
+    const storedTotalAmount = parseFloat(localStorage.getItem('totalAmount') || '0');
 
+    if (totalAmount !== storedTotalAmount) {
+      this.error = `Total invested amount must equal ${storedTotalAmount}.`;
+      return;
+    }
+    
+    this.error = null;
     this.storageService.setInvestedAssets(selectedAssets);
     this.router.navigate(['/goals']);
   }

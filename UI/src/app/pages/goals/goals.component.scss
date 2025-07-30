@@ -1,9 +1,16 @@
 // Elegant gradient background for goals page
-.goals-container {
-  min-height: 100vh;
-  padding: 2rem;
+.page-container {
+  height: 100vh;
   background: linear-gradient(135deg, #f2f4f7 0%, #4e2b4d 100%);
+}
+
+.goals-container {
+  height: 100%;
+  padding: 2rem;
   color: #333;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 form {

@@ -71,4 +71,17 @@ export class StorageService {
   setGoalsDetails(goals: any[]): void {
     this.setItem('goalsDetails', goals);
   }
+
+  // Profile management
+  getProfile(): any {
+    return this.getItem('userProfile') || null;
+  }
+
+  setProfile(profile: any): void {
+    this.setItem('userProfile', profile);
+  }
+
+  clearProfile(): void {
+    this.removeItem('userProfile');
+  }
 }

@@ -1,9 +1,11 @@
 <nav class="menu-bar">
   <div class="menu-items">
-    <button (click)="openCard('profile')" class="menu-item">Profile</button>
-    <button (click)="openCard('totals')" class="menu-item">Totals</button>
-    <button (click)="openCard('editMaster')" class="menu-item">Edit Master</button>
-    <button (click)="openCard('history')" class="menu-item">Transaction History</button>
+    <div class="centered-items">
+      <button (click)="openCard('profile')" class="menu-item">Profile</button>
+      <button (click)="openCard('totals')" class="menu-item">Totals</button>
+      <button (click)="openCard('editMaster')" class="menu-item">Edit Master</button>
+      <button (click)="openCard('history')" class="menu-item">Transaction History</button>
+    </div>
     <button (click)="logout()" class="menu-item logout">Logout</button>
   </div>
 </nav>
@@ -25,10 +27,98 @@
     </div>
 
     <!-- Profile Card -->
-    <div *ngIf="cardType === 'profile' && !isLoading && !error" class="card-content">
+    <div *ngIf="cardType === 'profile' && !isLoading && !error" class="card-content profile-card">
       <h2>Profile</h2>
-      <div class="profile-info">
-        <p>Username: {{ username }}</p>
+      <div class="profile-container">
+        <div class="profile-photo-section">
+          <div class="photo-container">
+            <img [src]="isEditingProfile ? tempProfile.photoUrl : profile.photoUrl" 
+                 alt="Profile photo" 
+                 class="profile-photo">
+            <div *ngIf="isEditingProfile" class="photo-overlay">
+              <input type="file" 
+                     accept="image/*" 
+                     (change)="onPhotoSelected($event)" 
+                     #fileInput 
+                     class="file-input">
+              <button class="change-photo-btn" (click)="fileInput.click()">
+                Change Photo
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="profile-details">
+          <div class="profile-fields" [class.editing]="isEditingProfile">
+            <div class="field">
+              <label>Username</label>
+              <span *ngIf="!isEditingProfile">{{ profile.username }}</span>
+              <input *ngIf="isEditingProfile" 
+                     type="text" 
+                     [(ngModel)]="tempProfile.username" 
+                     placeholder="Username">
+            </div>
+
+            <div class="field">
+              <label>Email</label>
+              <span *ngIf="!isEditingProfile">{{ profile.email || 'Not set' }}</span>
+              <input *ngIf="isEditingProfile" 
+                     type="email" 
+                     [(ngModel)]="tempProfile.email" 
+                     placeholder="Enter your email">
+            </div>
+
+            <div class="field">
+              <label>Mobile</label>
+              <span *ngIf="!isEditingProfile">{{ profile.mobile || 'Not set' }}</span>
+              <input *ngIf="isEditingProfile" 
+                     type="tel" 
+                     [(ngModel)]="tempProfile.mobile" 
+                     placeholder="Enter your mobile number">
+            </div>
+          </div>
+
+          <div class="profile-actions">
+            <ng-container *ngIf="!isEditingProfile">
+              <button class="edit-btn" (click)="startEditingProfile()">
+                Edit Profile
+              </button>
+            </ng-container>
+            <ng-container *ngIf="isEditingProfile">
+              <button class="save-btn" (click)="saveProfile()">
+                Save Changes
+              </button>
+              <button class="cancel-btn" (click)="cancelEditProfile()">
+                Cancel
+              </button>
+            </ng-container>
+          </div>
+
+          <div class="danger-zone">
+            <button class="clear-data-btn" (click)="showClearDataConfirmation()">
+              Clear All Data
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Clear Data Confirmation Modal -->
+      <div class="modal-overlay" *ngIf="showClearDataModal" (click)="cancelClearData()">
+        <div class="modal-content" (click)="$event.stopPropagation()">
+          <h3>⚠️ Warning: Clear All Data</h3>
+          <p>Are you sure you want to clear all data? This action cannot be undone and will:</p>
+          <ul>
+            <li>Delete all transaction history</li>
+            <li>Remove all goals and investments</li>
+            <li>Clear all master data</li>
+            <li>Log you out of the application</li>
+          </ul>
+          <p class="warning-text">This action is permanent and cannot be reversed!</p>
+          <div class="modal-actions">
+            <button class="modal-cancel" (click)="cancelClearData()">Cancel</button>
+            <button class="modal-confirm" (click)="confirmClearData()">Yes, Clear Everything</button>
+          </div>
+        </div>
       </div>
     </div>
 

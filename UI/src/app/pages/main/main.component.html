@@ -1,10 +1,14 @@
-<div class="main-container">
-  <h2>Main Page</h2>
-  <form (ngSubmit)="onSubmit()" [formGroup]="mainForm">
-    <div class="form-group">
-      <label for="totalAmount">Total Investable Amount</label>
-      <input id="totalAmount" formControlName="totalAmount" type="number" class="form-control" />
+<div class="page-container">
+  <div class="content-wrapper">
+    <div class="main-container">
+      <h2>Main Page</h2>
+      <form (ngSubmit)="onSubmit()" [formGroup]="mainForm">
+        <div class="form-group">
+          <label for="totalAmount">Total Investable Amount</label>
+          <input id="totalAmount" formControlName="totalAmount" type="number" class="form-control" />
+        </div>
+        <button type="submit" class="btn btn-primary" [disabled]="mainForm.invalid">Submit</button>
+      </form>
     </div>
-    <button type="submit" class="btn btn-primary" [disabled]="mainForm.invalid">Submit</button>
-  </form>
+  </div>
 </div>
