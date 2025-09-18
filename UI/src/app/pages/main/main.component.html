@@ -4,10 +4,20 @@
       <h2>Main Page</h2>
       <form (ngSubmit)="onSubmit()" [formGroup]="mainForm">
         <div class="form-group">
-          <label for="totalAmount">Total Investable Amount</label>
-          <input id="totalAmount" formControlName="totalAmount" type="number" class="form-control" />
+          <label for="totalAmount">Total Invested Amount</label>
+          <input 
+            id="totalAmount" 
+            formControlName="totalAmount" 
+            type="number" 
+            class="form-control" 
+            [ngClass]="{ 'is-invalid': submitted && f['totalAmount'].errors }"
+          />
+          <div *ngIf="submitted && f['totalAmount'].errors" class="error-message">
+            <div *ngIf="f['totalAmount'].errors['required']">Total amount is required</div>
+            <div *ngIf="f['totalAmount'].errors['min']">Total amount must be greater than 0</div>
+          </div>
         </div>
-        <button type="submit" class="btn btn-primary" [disabled]="mainForm.invalid">Submit</button>
+        <button type="submit" class="btn btn-primary">Submit</button>
       </form>
     </div>
   </div>

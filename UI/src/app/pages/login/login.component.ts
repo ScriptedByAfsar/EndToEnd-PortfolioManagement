@@ -30,7 +30,7 @@ export class LoginComponent implements OnInit {
         (response) => {
           // Accept any 2xx response as success
           if (response && (response.isSuccess === true)) {
-            this.router.navigate(['/main']);
+            this.router.navigate(['/dashboard']);
           } else {
             this.errorMessage = 'Login failed.';
           }

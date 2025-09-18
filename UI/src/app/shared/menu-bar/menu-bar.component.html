@@ -1,7 +1,13 @@
 <nav class="menu-bar">
+  <button (click)="toggleTheme()" class="theme-toggle" [class.dark-mode]="isDarkMode">
+    <svg class="moon-icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+      <path d="M12 3c.132 0 .263 0 .393 0a7.5 7.5 0 0 0 7.92 12.446a9 9 0 1 1-8.313-12.454z"/>
+    </svg>
+  </button>
   <div class="menu-items">
     <div class="centered-items">
       <button (click)="openCard('profile')" class="menu-item">Profile</button>
+      <button (click)="navigateToDashboard()" class="menu-item">Dashboard</button>
       <button (click)="openCard('totals')" class="menu-item">Totals</button>
       <button (click)="openCard('editMaster')" class="menu-item">Edit Master</button>
       <button (click)="openCard('history')" class="menu-item">Transaction History</button>
@@ -152,7 +158,7 @@
           </tbody>
         </table>
         <div class="total-amount">
-          Total Invested Amount: {{ totalInvestedAmount | currency }}
+          Total Invested Amount Till Now: {{ totalInvestedAmount | currency }}
         </div>
       </div>
 
@@ -187,36 +193,60 @@
       <h2>Transaction History</h2>
       
       <div class="history-options">
-        <button (click)="subType = 'invested'" [class.active]="subType === 'invested'">Invested History</button>
-        <button (click)="subType = 'goals'" [class.active]="subType === 'goals'">Goals History</button>
+        <button (click)="switchHistoryType('invested')" [class.active]="subType === 'invested'">Invested History</button>
+        <button (click)="switchHistoryType('goals')" [class.active]="subType === 'goals'">Goals History</button>
       </div>
 
-      <table>
-        <thead>
-          <tr>
-            <th>{{ subType === 'invested' ? 'Plan Name' : 'Goal Name' }}</th>
-            <th>Amount</th>
-            <th>Percentage</th>
-            <th>Date</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr *ngFor="let detail of (subType === 'invested' ? investedDetails : goalsDetails)">
-            <td>{{ subType === 'invested' ? detail.planName : detail.goalName }}</td>
-            <td>{{ detail.amount | currency }}</td>
-            <td>{{ detail.percentage }}%</td>
-            <td>{{ detail.timestamp | date:'medium' }}</td>
-          </tr>
-          <tr *ngIf="(subType === 'invested' ? investedDetails : goalsDetails).length === 0">
-            <td colspan="4" class="no-data">No transactions found</td>
-          </tr>
-        </tbody>
-      </table>
+      <div class="table-container" [class.slide-left]="slideDirection === 'next'" [class.slide-right]="slideDirection === 'prev'">
+        <table>
+          <thead>
+            <tr>
+              <th>{{ subType === 'invested' ? 'Plan Name' : 'Goal Name' }}</th>
+              <th>Amount</th>
+              <th>Percentage</th>
+              <th>Date</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let detail of (subType === 'invested' ? investedDetails : goalsDetails)"
+                [@fadeInOut]>
+              <td>{{ subType === 'invested' ? detail.planName : detail.goalName }}</td>
+              <td>{{ detail.amount | currency }}</td>
+              <td>{{ detail.percentage }}%</td>
+              <td>{{ detail.timestamp | date:'medium' }}</td>
+            </tr>
+            <tr *ngIf="(subType === 'invested' ? investedDetails : goalsDetails).length === 0">
+              <td colspan="4" class="no-data">No transactions found</td>
+            </tr>
+          </tbody>
+        </table>
+
+        <div class="pagination-controls">
+          <button class="pagination-btn" 
+                  [disabled]="currentPage === 1"
+                  (click)="navigatePage('prev')"
+                  [@buttonPulse]="prevButtonState">
+            <i class="fas fa-chevron-left"></i>
+          </button>
+          <span class="page-info">Page {{currentPage}} of {{totalPages}}</span>
+          <button class="pagination-btn" 
+                  [disabled]="currentPage === totalPages"
+                  (click)="navigatePage('next')"
+                  [@buttonPulse]="nextButtonState">
+            <i class="fas fa-chevron-right"></i>
+          </button>
+        </div>
+      </div>
     </div>
 
     <!-- Edit Master Card -->
     <div *ngIf="cardType === 'editMaster'" class="card-content">
       <h2>Edit Master Data</h2>
+      
+      <!-- Error message for duplicates -->
+      <div *ngIf="error" class="error-message">
+        {{ error }}
+      </div>
       
       <div class="master-sections-container">
         <div class="master-section">

@@ -1,10 +1,77 @@
 /* You can add global styles to this file, and also import other style files */
 
+:root {
+  // Light theme variables
+  --bg-gradient-start: #f2f4f7;
+  --bg-gradient-end: #4e2b4d;
+  --text-color: #333;
+  --text-color-secondary: #666;
+  --heading-color: #333;
+  --bg-color: #fff;
+  --card-bg: #fff;
+  --form-bg: rgba(255, 255, 255, 0.1);
+  --input-bg: #fff;
+  --input-text: #333;
+  --input-border: #ddd;
+  --icon-color: #fff;
+  --icon-glow: rgba(255, 255, 255, 0.7);
+  --icon-glow-dark: rgba(0, 0, 0, 0.3);
+  --shadow-color: rgba(0, 0, 0, 0.1);
+  --divider-color: rgba(255, 255, 255, 0.5);
+  --item-bg: #f8f9fa;
+}
+
+[data-theme="dark"] {
+  --bg-gradient-start: #1a1a1a;
+  --bg-gradient-end: #2d1f2d;
+  --text-color: #e1e1e1;
+  --text-color-secondary: #b0b0b0;
+  --heading-color: #ffffff;
+  --bg-color: #121212;
+  --card-bg: #1e1e1e;
+  --form-bg: rgba(0, 0, 0, 0.2);
+  --input-bg: rgba(255, 255, 255, 0.1);
+  --input-text: #e1e1e1;
+  --input-border: #333;
+  --icon-color: #fff;
+  --icon-glow: rgba(255, 255, 255, 0.2);
+  --icon-glow-dark: rgba(0, 0, 0, 0.5);
+  --shadow-color: rgba(0, 0, 0, 0.3);
+  --divider-color: rgba(255, 255, 255, 0.1);
+  --item-bg: #2d2d2d;
+  --item-hover: #f0f0f0;
+  --button-text: #fff;
+}
+
+[data-theme="dark"] {
+  --bg-gradient-start: #1a1a1a;
+  --bg-gradient-end: #2d1a2d;
+  --text-color: #e1e1e1;
+  --text-color-secondary: #b0b0b0;
+  --heading-color: #fff;
+  --bg-color: #121212;
+  --card-bg: #1e1e1e;
+  --form-bg: rgba(255, 255, 255, 0.05);
+  --input-bg: #2d2d2d;
+  --input-border: #404040;
+  --icon-color: #ffd700;
+  --icon-glow: rgba(255, 215, 0, 0.5);
+  --icon-glow-dark: rgba(255, 215, 0, 0.3);
+  --shadow-color: rgba(0, 0, 0, 0.3);
+  --divider-color: rgba(255, 255, 255, 0.2);
+  --item-bg: #2d2d2d;
+  --item-hover: #383838;
+  --button-text: #fff;
+}
+
 html, body {
   height: 100%;
   margin: 0;
   padding: 0;
   overflow: hidden;
+  background-color: var(--bg-color);
+  color: var(--text-color);
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 body {

@@ -17,39 +17,97 @@ namespace Server.Controllers
             _context = context;
         }
 
-        [HttpGet("totals")]
-        public IActionResult GetTotals()
-        {
-            var totals = _context.Totals.FirstOrDefault();
-            if (totals == null)
-            {
-                return NotFound("Totals not found.");
-            }
-            return Ok(totals);
-        }
-
-        [HttpGet("transaction-history/{type}")]
-        public IActionResult GetTransactionHistory(TransactionType type)
+        [HttpGet("goals-details")]
+        public IActionResult GetGoalsDetails()
         {
             try
             {
+                var goalsDetails = _context.GoalsDetails.ToList();
+                return Ok(goalsDetails);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new CommonResponse { IsSuccess = false, Message = "Error retrieving goals details: " + ex.Message });
+            }
+        }
+
+        [HttpGet("invested-details")]
+        public IActionResult GetInvestedDetails()
+        {
+            try
+            {
+                var investedDetails = _context.InvestedDetails.ToList();
+                return Ok(investedDetails);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new CommonResponse { IsSuccess = false, Message = "Error retrieving invested details: " + ex.Message });
+            }
+        }
+
+        [HttpGet("totals")]
+        public IActionResult GetTotals()
+        {
+            try
+            {
+                // Calculate totals from GoalsDetails and InvestedDetails
+                decimal totalGoals = _context.GoalsDetails.Sum(g => g.Amount);
+                decimal totalInvested = _context.InvestedDetails.Sum(i => i.Amount);
+
+                var totals = new Totals
+                {
+                    TotalGoals = totalGoals,
+                    TotalInvested = totalInvested
+                };
+
+                return Ok(totals);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new CommonResponse { IsSuccess = false, Message = "Error calculating totals: " + ex.Message });
+            }
+        }
+
+        [HttpGet("transaction-history/{type}")]
+        public IActionResult GetTransactionHistory(TransactionType type, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+        {
+            try
+            {
+                IQueryable<dynamic> query;
+                int totalCount;
+
                 switch (type)
                 {
                     case TransactionType.Investment:
-                        var investmentTransactions = _context.InvestmentTransactions
+                        query = _context.InvestmentTransactions
                             .OrderByDescending(t => t.Timestamp)
-                            .ToList();
-                        return Ok(investmentTransactions);
+                            .Skip((page - 1) * pageSize)
+                            .Take(pageSize);
+                        totalCount = _context.InvestmentTransactions.Count();
+                        break;
                     
                     case TransactionType.Goal:
-                        var goalTransactions = _context.GoalTransactions
+                        query = _context.GoalTransactions
                             .OrderByDescending(t => t.Timestamp)
-                            .ToList();
-                        return Ok(goalTransactions);
+                            .Skip((page - 1) * pageSize)
+                            .Take(pageSize);
+                        totalCount = _context.GoalTransactions.Count();
+                        break;
                     
                     default:
                         return BadRequest("Invalid transaction type");
                 }
+
+                var result = new
+                {
+                    items = query.ToList(),
+                    totalCount = totalCount,
+                    totalPages = (int)Math.Ceiling(totalCount / (double)pageSize),
+                    currentPage = page,
+                    pageSize = pageSize
+                };
+
+                return Ok(result);
             }
             catch (Exception ex)
             {
@@ -110,19 +168,77 @@ namespace Server.Controllers
         [HttpPost("save-details")]
         public IActionResult SaveDetails([FromBody] SaveDetailsRequest request)
         {
+            // Handle invested details
             foreach (var invested in request.InvestedDetails)
             {
-                _context.InvestedDetails.Add(invested);
+                var existingInvested = _context.InvestedDetails
+                    .FirstOrDefault(i => i.AssetName == invested.AssetName);
+
+                if (existingInvested != null)
+                {
+                    existingInvested.Amount += invested.Amount;
+                    existingInvested.Percentage = invested.Percentage;
+                }
+                else
+                {
+                    _context.InvestedDetails.Add(invested);
+                }
             }
 
+            // Handle goals details
             foreach (var goal in request.GoalsDetails)
             {
-                _context.GoalsDetails.Add(goal);
+                var existingGoal = _context.GoalsDetails
+                    .FirstOrDefault(g => g.GoalName == goal.GoalName);
+
+                if (existingGoal != null)
+                {
+                    existingGoal.Amount += goal.Amount;
+                    existingGoal.Percentage = goal.Percentage;
+                }
+                else
+                {
+                    _context.GoalsDetails.Add(goal);
+                }
             }
 
             commonResponse = new CommonResponse() { IsSuccess = true, Message = "Details saved successfully." };
             _context.SaveChanges();
             return Ok(commonResponse);
+        }
+
+        [HttpPost("save-targets")]
+        public IActionResult SaveTargets([FromBody] SaveTargetsRequest request)
+        {
+            try
+            {
+                // Update goals targets
+                foreach (var goal in request.Goals)
+                {
+                    var existingGoal = _context.GoalsDetails.FirstOrDefault(g => g.GoalName == goal.Name);
+                    if (existingGoal != null)
+                    {
+                        existingGoal.Target = goal.Target;
+                    }
+                }
+
+                // Update investment targets
+                foreach (var asset in request.Assets)
+                {
+                    var existingAsset = _context.InvestedDetails.FirstOrDefault(a => a.AssetName == asset.Name);
+                    if (existingAsset != null)
+                    {
+                        existingAsset.Target = asset.Target;
+                    }
+                }
+
+                _context.SaveChanges();
+                return Ok(new CommonResponse { IsSuccess = true, Message = "Targets updated successfully." });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new CommonResponse { IsSuccess = false, Message = "Error updating targets: " + ex.Message });
+            }
         }
     }
 }

@@ -56,8 +56,8 @@ export class AuthService {
     return this.http.get(`${this.portfolioApiUrl}/totals`);
   }
 
-  getTransactionHistory(type: TransactionType): Observable<any> {
-    return this.http.get(`${this.portfolioApiUrl}/transaction-history/${type}`);
+  getTransactionHistory(type: TransactionType, page: number = 1, pageSize: number = 10): Observable<any> {
+    return this.http.get(`${this.portfolioApiUrl}/transaction-history/${type}?page=${page}&pageSize=${pageSize}`);
   }
 
   saveInvestmentTransaction(transaction: any): Observable<any> {
@@ -132,5 +132,18 @@ export class AuthService {
   // Delete goal
   deleteGoal(id: number): Observable<any> {
     return this.http.delete(`${this.masterDataApiUrl}/goals/${id}`);
+  }
+
+  // Save targets
+  saveTargets(goals: any[], assets: any[]): Observable<any> {
+    return this.http.post(`${this.portfolioApiUrl}/save-targets`, { goals, assets });
+  }
+
+  getGoalsDetails(): Observable<any> {
+    return this.http.get(`${this.portfolioApiUrl}/goals-details`);
+  }
+
+  getInvestedDetails(): Observable<any> {
+    return this.http.get(`${this.portfolioApiUrl}/invested-details`);
   }
 }

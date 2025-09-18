@@ -487,4 +487,3 @@ C:\Users\noor7\source\repos\Portfolio-E2E-Web-Application\EndToEnd-PortfolioMana
 C:\Users\noor7\source\repos\Portfolio-E2E-Web-Application\EndToEnd-PortfolioManagement\Server\obj\Debug\net9.0\Server.pdb
 C:\Users\noor7\source\repos\Portfolio-E2E-Web-Application\EndToEnd-PortfolioManagement\Server\obj\Debug\net9.0\Server.genruntimeconfig.cache
 C:\Users\noor7\source\repos\Portfolio-E2E-Web-Application\EndToEnd-PortfolioManagement\Server\obj\Debug\net9.0\ref\Server.dll
-C:\Users\noor7\source\repos\Portfolio-E2E-Web-Application\EndToEnd-PortfolioManagement\Server\obj\Debug\net9.0\staticwebassets.upToDateCheck.txt

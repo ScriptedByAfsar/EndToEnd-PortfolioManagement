@@ -16,6 +16,7 @@ export class MainComponent implements OnInit {
   mainForm!: FormGroup;
   totalAmount: number = 0;
   username: string = '';
+  submitted: boolean = false;
 
   constructor(private fb: FormBuilder, private router: Router, private storageService: StorageService) {}
 
@@ -30,10 +31,16 @@ export class MainComponent implements OnInit {
   }
 
   onSubmit(): void {
+    this.submitted = true;
+    
     if (this.mainForm.valid) {
       const { totalAmount } = this.mainForm.value;
       localStorage.setItem('totalAmount', totalAmount);
       this.router.navigate(['/invested']);
     }
+  }
+
+  get f() {
+    return this.mainForm.controls;
   }
 }

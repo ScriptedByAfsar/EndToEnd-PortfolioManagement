@@ -1,10 +1,13 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy } from '@angular/core';
 import { FormBuilder, FormGroup } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule } from '@angular/forms';
 import { StorageService } from '../../shared/storage.service';
 import { AuthService } from '../../shared/auth.service';
+import { Subject } from 'rxjs';
+import { takeUntil } from 'rxjs/operators';
+import { DataUpdateService } from '../../shared/data-update.service';
 
 @Component({
   selector: 'app-invested',
@@ -12,18 +15,86 @@ import { AuthService } from '../../shared/auth.service';
   templateUrl: './invested.component.html',
   styleUrls: ['./invested.component.scss']
 })
-export class InvestedComponent implements OnInit {
+export class InvestedComponent implements OnInit, OnDestroy {
   investedForm!: FormGroup;
   assets: Array<{ assetname: string; amountControl: string }> = [];
   isLoading = true;
   error: string | null = null;
+  private destroy$ = new Subject<void>();
 
   constructor(
     private fb: FormBuilder, 
     private router: Router, 
     private storageService: StorageService,
-    private authService: AuthService
-  ) {}
+    private authService: AuthService,
+    private dataUpdateService: DataUpdateService
+  ) {
+    // Subscribe to master data updates
+    this.dataUpdateService.masterDataUpdate$
+      .pipe(takeUntil(this.destroy$))
+      .subscribe(update => {
+        if (!update) return;
+        if (update.type === 'asset') {
+          if (update.action === 'add') {
+            this.assets.push({
+              assetname: update.item.name,
+              amountControl: update.item.name.toLowerCase().replace(/\s+/g, '') + 'Amount'
+            });
+            // Add new form controls for the new asset
+            const controls = this.investedForm?.controls || {};
+            controls[update.item.name] = this.fb.control(false);
+            controls[update.item.name.toLowerCase().replace(/\s+/g, '') + 'Amount'] = this.fb.control('');
+            this.investedForm = this.fb.group(controls);
+          } else if (update.action === 'delete') {
+            // Remove the asset and its controls from the form
+            const assetToRemove = this.assets.find(a => a.assetname === update.item.name);
+            if (assetToRemove) {
+              this.assets = this.assets.filter(a => a.assetname !== update.item.name);
+              const controls = { ...this.investedForm.controls };
+              delete controls[assetToRemove.assetname];
+              delete controls[assetToRemove.amountControl];
+              this.investedForm = this.fb.group(controls);
+            }
+          } else if (update.action === 'update') {
+            // Update the asset name in the form
+            const assetToUpdate = this.assets.find(a => a.assetname === update.item.oldName);
+            if (assetToUpdate) {
+              // Store the current values
+              const isChecked = this.investedForm.get(assetToUpdate.assetname)?.value;
+              const amount = this.investedForm.get(assetToUpdate.amountControl)?.value;
+
+              // Remove old controls
+              const controls = { ...this.investedForm.controls };
+              delete controls[assetToUpdate.assetname];
+              delete controls[assetToUpdate.amountControl];
+
+              // Update asset in list
+              const newAmountControl = update.item.name.toLowerCase().replace(/\s+/g, '') + 'Amount';
+              this.assets = this.assets.map(a => 
+                a.assetname === update.item.oldName 
+                  ? { assetname: update.item.name, amountControl: newAmountControl }
+                  : a
+              );
+
+              // Add new controls with previous values
+              controls[update.item.name] = this.fb.control(isChecked);
+              controls[newAmountControl] = this.fb.control(amount);
+
+              // Update form
+              this.investedForm = this.fb.group(controls);
+              
+              // Force change detection
+              this.investedForm.updateValueAndValidity({ emitEvent: true });
+            }
+          }
+        }
+      });
+  }
+
+  ngOnDestroy() {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
 
   ngOnInit(): void {
     this.loadAssets();

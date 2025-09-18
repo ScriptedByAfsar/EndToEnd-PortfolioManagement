@@ -1,0 +1,23 @@
+<div class="dashboard-container">
+    <div class="header">
+        <h1>Portfolio Dashboard</h1>
+        <button class="main-button" (click)="navigateToMain()">Go to Main</button>
+    </div>
+    
+    <div class="charts-container">
+         <div class="chart-section">
+            <h2>Investment Assets Distribution</h2>
+            <div class="chart-wrapper">
+                <canvas #assetsChart></canvas>
+            </div>
+        </div>
+        <div class="chart-section">
+            <h2>Goals Distribution</h2>
+            <div class="chart-wrapper">
+                <canvas #goalsChart></canvas>
+            </div>
+        </div>
+    </div>
+
+    <button class="targets-button" (click)="navigateToTargets()">Targets</button>
+</div>

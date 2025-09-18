@@ -1,0 +1,81 @@
+<div class="container mt-4">
+  <!-- Header with back button and set targets -->
+  <div class="row mb-4">
+    <div class="col">
+      <button class="btn btn-outline-primary me-2" (click)="navigateToDashboard()">
+        <i class="fas fa-arrow-left"></i> Back to Dashboard
+      </button>
+      <button class="btn btn-primary" (click)="toggleTargetCard()">
+        <i class="fas fa-bullseye"></i> Set Targets
+      </button>
+    </div>
+  </div>
+
+  <!-- Target Setting Card -->
+  <div class="card mb-4" *ngIf="showTargetCard">
+    <div class="card-header">
+      <h5 class="card-title mb-0">Set Targets</h5>
+    </div>
+    <div class="card-body">
+      <div class="row">
+        <!-- Goals Section -->
+        <div class="col-md-6">
+          <h6>Goals</h6>
+          <div class="mb-3" *ngFor="let goal of goals">
+            <label [for]="'goal-' + goal.id" class="form-label">{{goal.name}}</label>
+            <input type="number" 
+                   class="form-control" 
+                   [id]="'goal-' + goal.id" 
+                   [(ngModel)]="goal.target" 
+                   min="0">
+          </div>
+        </div>
+
+        <!-- Assets Section -->
+        <div class="col-md-6">
+          <h6>Invested Assets</h6>
+          <div class="mb-3" *ngFor="let asset of investedAssets">
+            <label [for]="'asset-' + asset.id" class="form-label">{{asset.name}}</label>
+            <input type="number" 
+                   class="form-control" 
+                   [id]="'asset-' + asset.id" 
+                   [(ngModel)]="asset.target" 
+                   min="0">
+          </div>
+        </div>
+      </div>
+
+      <div class="text-end mt-3">
+        <button class="btn btn-secondary me-2" (click)="toggleTargetCard()">Cancel</button>
+        <button class="btn btn-primary" (click)="saveTargets()">Save Targets</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Charts Section -->
+  <div class="row">
+    <!-- Goals Progress -->
+    <div class="col-md-6 mb-4">
+      <div class="card h-100">
+        <div class="card-header">
+          <h5 class="card-title mb-0">Goals Progress</h5>
+        </div>
+        <div class="card-body">
+          <canvas #goalsChart></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Assets Progress -->
+    <div class="col-md-6 mb-4">
+      <div class="card h-100">
+        <div class="card-header">
+          <h5 class="card-title mb-0">Invested Assets Progress</h5>
+        </div>
+        <div class="card-body">
+          <canvas #assetsChart></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

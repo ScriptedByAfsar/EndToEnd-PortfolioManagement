@@ -1,11 +1,13 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, PLATFORM_ID } from '@angular/core';
 import { Router } from '@angular/router';
-import { CommonModule } from '@angular/common';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AuthService } from '../auth.service';
 import { StorageService } from '../storage.service';
 import { TransactionType } from '../../Models/transaction-type.enum';
 import { forkJoin } from 'rxjs';
+import { animate, state, style, transition, trigger, keyframes } from '@angular/animations';
+import { DataUpdateService } from '../data-update.service';
 
 interface Transaction {
   planName?: string;
@@ -33,12 +35,69 @@ interface MasterItem {
   standalone: true,
   imports: [CommonModule, FormsModule],
   templateUrl: './menu-bar.component.html',
-  styleUrls: ['./menu-bar.component.scss']
+  styleUrls: ['./menu-bar.component.scss'],
+  animations: [
+    trigger('fadeInOut', [
+      transition(':enter', [
+        style({ opacity: 0, transform: 'translateY(-10px)' }),
+        animate('300ms ease-out', style({ opacity: 1, transform: 'translateY(0)' }))
+      ])
+    ]),
+    trigger('buttonPulse', [
+      state('true', style({ transform: 'scale(1)' })),
+      state('false', style({ transform: 'scale(1)' })),
+      transition('false <=> true', [
+        animate('300ms ease-in-out', keyframes([
+          style({ transform: 'scale(1)', offset: 0 }),
+          style({ transform: 'scale(1.1)', offset: 0.5 }),
+          style({ transform: 'scale(1)', offset: 1 })
+        ]))
+      ])
+    ])
+  ]
 })
 export class MenuBarComponent {
+  isDarkMode = false;
+  private platformId = inject(PLATFORM_ID);
   private router = inject(Router);
   private authService = inject(AuthService);
   private storageService = inject(StorageService);
+  private dataUpdateService = inject(DataUpdateService);
+
+  constructor() {
+    // Theme initialization should only run on the browser
+    if (isPlatformBrowser(this.platformId)) {
+      const savedTheme = this.storageService.getItem('theme', false);
+      if (savedTheme === 'dark') {
+        this.enableDarkMode();
+      }
+    }
+  }
+
+  toggleTheme() {
+    this.isDarkMode = !this.isDarkMode;
+    if (this.isDarkMode) {
+      this.enableDarkMode();
+    } else {
+      this.disableDarkMode();
+    }
+  }
+
+  private enableDarkMode() {
+    if (isPlatformBrowser(this.platformId)) {
+      document.documentElement.setAttribute('data-theme', 'dark');
+      this.storageService.setItem('theme', 'dark', false);
+    }
+    this.isDarkMode = true;
+  }
+
+  private disableDarkMode() {
+    if (isPlatformBrowser(this.platformId)) {
+      document.documentElement.removeAttribute('data-theme');
+      this.storageService.setItem('theme', 'light', false);
+    }
+    this.isDarkMode = false;
+  }
 
   showCard = false;
   cardType: string = '';
@@ -58,6 +117,12 @@ export class MenuBarComponent {
   // For Transaction History
   investedDetails: Transaction[] = [];
   goalsDetails: Transaction[] = [];
+  currentPage = 1;
+  pageSize = 10;
+  totalPages = 1;
+  slideDirection = '';
+  prevButtonState = false;
+  nextButtonState = false;
 
   // For Totals
   investedSummary: Summary[] = [];
@@ -132,28 +197,41 @@ export class MenuBarComponent {
     this.error = null;
 
     forkJoin({
-      invested: this.authService.getTransactionHistory(TransactionType.Investment),
-      goals: this.authService.getTransactionHistory(TransactionType.Goal),
-      totals: this.authService.getTotals()
+      invested: this.authService.getInvestedDetails(), // Get invested details directly
+      goals: this.authService.getGoalsDetails(), // Get goals details directly
+      totals: this.authService.getTotals() // Totals are now calculated from GoalsDetails and InvestedDetails
     }).subscribe({
       next: (response) => {
         this.totalInvestedAmount = response.totals.totalInvested;
         this.totalGoalsAmount = response.totals.totalGoals;
 
-        // Calculate summaries from transactions
-        this.investedSummary = this.calculateSummary(
-          response.invested,
-          this.masterAssets,
-          'planName',
-          this.totalInvestedAmount
-        );
+        // Process invested details
+        const investedByAsset = new Map<string, number>();
+        response.invested.forEach((item: { assetName: string; amount: number; timestamp: string }) => {
+          const currentAmount = investedByAsset.get(item.assetName) || 0;
+          investedByAsset.set(item.assetName, currentAmount + item.amount);
+        });
 
-        this.goalsSummary = this.calculateSummary(
-          response.goals,
-          this.masterGoals,
-          'goalName',
-          this.totalGoalsAmount
-        );
+        this.investedSummary = Array.from(investedByAsset.entries()).map(([name, amount]) => ({
+          name,
+          amount,
+          percentage: this.calculatePercentage(amount, this.totalInvestedAmount),
+          timestamp: new Date()
+        }));
+
+        // Process goal details
+        const goalsByName = new Map<string, number>();
+        response.goals.forEach((item: { goalName: string; amount: number; timestamp: string }) => {
+          const currentAmount = goalsByName.get(item.goalName) || 0;
+          goalsByName.set(item.goalName, currentAmount + item.amount);
+        });
+
+        this.goalsSummary = Array.from(goalsByName.entries()).map(([name, amount]) => ({
+          name,
+          amount,
+          percentage: this.calculatePercentage(amount, this.totalGoalsAmount),
+          timestamp: new Date()
+        }));
 
         this.isLoading = false;
       },
@@ -165,17 +243,48 @@ export class MenuBarComponent {
     });
   }
 
-  loadTransactionHistory() {
+  navigatePage(direction: 'next' | 'prev') {
+    if (direction === 'next' && this.currentPage < this.totalPages) {
+      this.nextButtonState = true;
+      this.currentPage++;
+      setTimeout(() => this.nextButtonState = false, 300);
+    } else if (direction === 'prev' && this.currentPage > 1) {
+      this.prevButtonState = true;
+      this.currentPage--;
+      setTimeout(() => this.prevButtonState = false, 300);
+    }
+    this.loadTransactionHistory(direction);
+  }
+
+  loadTransactionHistory(direction: 'next' | 'prev' | 'none' = 'none') {    if (!this.cardType || !this.subType) return;
+    
     this.isLoading = true;
     this.error = null;
+    this.slideDirection = direction;
 
-    forkJoin({
-      invested: this.authService.getTransactionHistory(TransactionType.Investment),
-      goals: this.authService.getTransactionHistory(TransactionType.Goal)
-    }).subscribe({
-      next: (response) => {
-        this.investedDetails = response.invested;
-        this.goalsDetails = response.goals;
+    const type = this.subType === 'invested' ? TransactionType.Investment : TransactionType.Goal;
+    
+    this.authService.getTransactionHistory(type, this.currentPage, this.pageSize).subscribe({
+      next: (response: any) => {
+        const transactions = response.items;
+        this.totalPages = response.totalPages;
+
+        if (this.subType === 'invested') {
+          this.investedDetails = transactions.map((t: any) => ({
+            planName: t.planName,
+            amount: t.amount,
+            percentage: t.percentage,
+            timestamp: new Date(t.timestamp)
+          }));
+        } else {
+          this.goalsDetails = transactions.map((t: any) => ({
+            goalName: t.goalName,
+            amount: t.amount,
+            percentage: t.percentage,
+            timestamp: new Date(t.timestamp)
+          }));
+        }
+
         this.isLoading = false;
       },
       error: (err) => {
@@ -327,16 +436,33 @@ export class MenuBarComponent {
 
   // Asset management
   addAsset() {
-    if (!this.newAssetName.trim()) return;
-    
-    this.authService.addAsset(this.newAssetName).subscribe({
-      next: (response: any) => {
+    const trimmedName = this.newAssetName.trim();
+    if (!trimmedName) return;
+
+    // Check for duplicates (case-insensitive)
+    const isDuplicate = this.masterAssets.some(
+      asset => asset.name.toLowerCase() === trimmedName.toLowerCase()
+    );
+
+    if (isDuplicate) {
+      this.error = 'An asset with this name already exists.';
+      return;
+    }
+
+    this.authService.addAsset(trimmedName).subscribe({
+      next: (response) => {
         this.masterAssets.push(response);
         this.newAssetName = '';
-        this.loadSummary(); // Refresh summaries
+        this.error = null;
+        // Notify subscribers about the new asset
+        this.dataUpdateService.notifyMasterDataUpdate({
+          type: 'asset',
+          action: 'add',
+          item: response
+        });
       },
-      error: (err: any) => {
-        console.error('Error adding asset:', err);
+      error: (error) => {
+        console.error('Error adding asset:', error);
         this.error = 'Failed to add asset. Please try again.';
       }
     });
@@ -344,9 +470,27 @@ export class MenuBarComponent {
 
   updateAsset(asset: MasterItem) {
     const updatedAsset = { ...asset, isActive: true };
+    const originalAsset = this.masterAssets.find(a => a.id === asset.id);
+    if (!originalAsset) return;
+    
     this.authService.updateAsset(updatedAsset.id, updatedAsset.name, updatedAsset.isActive).subscribe({
       next: () => {
         this.editMode[asset.id] = false;
+        // Update local master assets list
+        this.masterAssets = this.masterAssets.map(a => 
+          a.id === asset.id ? updatedAsset : a
+        );
+        // Notify subscribers about the updated asset
+        this.dataUpdateService.notifyMasterDataUpdate({
+          type: 'asset',
+          action: 'update',
+          item: { 
+            oldName: originalAsset.name,
+            name: updatedAsset.name,
+            id: updatedAsset.id,
+            isActive: updatedAsset.isActive
+          }
+        });
         this.loadSummary(); // Refresh summaries
         if (this.cardType === 'history') {
           this.loadTransactionHistory();
@@ -359,31 +503,55 @@ export class MenuBarComponent {
     });
   }
 
+  // Asset deletion
   deleteAsset(id: number) {
+    const assetToDelete = this.masterAssets.find(asset => asset.id === id);
+    if (!assetToDelete) return;
+
     this.authService.deleteAsset(id).subscribe({
       next: () => {
-        this.masterAssets = this.masterAssets.filter(a => a.id !== id);
-        this.loadSummary(); // Refresh summaries
+        this.masterAssets = this.masterAssets.filter(asset => asset.id !== id);
+        this.dataUpdateService.notifyMasterDataUpdate({
+          type: 'asset',
+          action: 'delete',
+          item: assetToDelete
+        });
       },
-      error: (err: any) => {
-        console.error('Error deleting asset:', err);
-        this.error = 'Failed to delete asset. Please try again.';
+      error: (error) => {
+        console.error('Error deleting asset:', error);
       }
     });
   }
 
   // Goal management
   addGoal() {
-    if (!this.newGoalName.trim()) return;
-    
-    this.authService.addGoal(this.newGoalName).subscribe({
-      next: (response: any) => {
+    const trimmedName = this.newGoalName.trim();
+    if (!trimmedName) return;
+
+    // Check for duplicates (case-insensitive)
+    const isDuplicate = this.masterGoals.some(
+      goal => goal.name.toLowerCase() === trimmedName.toLowerCase()
+    );
+
+    if (isDuplicate) {
+      this.error = 'A goal with this name already exists.';
+      return;
+    }
+
+    this.authService.addGoal(trimmedName).subscribe({
+      next: (response) => {
         this.masterGoals.push(response);
         this.newGoalName = '';
-        this.loadSummary(); // Refresh summaries
+        this.error = null;
+        // Notify subscribers about the new goal
+        this.dataUpdateService.notifyMasterDataUpdate({
+          type: 'goal',
+          action: 'add',
+          item: response
+        });
       },
-      error: (err: any) => {
-        console.error('Error adding goal:', err);
+      error: (error) => {
+        console.error('Error adding goal:', error);
         this.error = 'Failed to add goal. Please try again.';
       }
     });
@@ -391,9 +559,27 @@ export class MenuBarComponent {
 
   updateGoal(goal: MasterItem) {
     const updatedGoal = { ...goal, isActive: true };
+    const originalGoal = this.masterGoals.find(g => g.id === goal.id);
+    if (!originalGoal) return;
+    
     this.authService.updateGoal(updatedGoal.id, updatedGoal.name, updatedGoal.isActive).subscribe({
       next: () => {
         this.editMode[goal.id] = false;
+        // Update local master goals list
+        this.masterGoals = this.masterGoals.map(g => 
+          g.id === goal.id ? updatedGoal : g
+        );
+        // Notify subscribers about the updated goal with proper structure
+        this.dataUpdateService.notifyMasterDataUpdate({
+          type: 'goal',
+          action: 'update',
+          item: { 
+            oldName: originalGoal.name,
+            name: updatedGoal.name,
+            id: updatedGoal.id,
+            isActive: updatedGoal.isActive
+          }
+        });
         // Refresh both summaries and transaction history since goal name has changed
         this.loadSummary();
         if (this.cardType === 'history') {
@@ -407,15 +593,22 @@ export class MenuBarComponent {
     });
   }
 
+  // Goal deletion
   deleteGoal(id: number) {
+    const goalToDelete = this.masterGoals.find(goal => goal.id === id);
+    if (!goalToDelete) return;
+
     this.authService.deleteGoal(id).subscribe({
       next: () => {
-        this.masterGoals = this.masterGoals.filter(g => g.id !== id);
-        this.loadSummary(); // Refresh summaries
+        this.masterGoals = this.masterGoals.filter(goal => goal.id !== id);
+        this.dataUpdateService.notifyMasterDataUpdate({
+          type: 'goal',
+          action: 'delete',
+          item: goalToDelete
+        });
       },
-      error: (err: any) => {
-        console.error('Error deleting goal:', err);
-        this.error = 'Failed to delete goal. Please try again.';
+      error: (error) => {
+        console.error('Error deleting goal:', error);
       }
     });
   }
@@ -424,16 +617,23 @@ export class MenuBarComponent {
     this.cardType = type;
     this.subType = subType || 'invested';
     this.showCard = true;
+    this.currentPage = 1; // Reset page number when opening card
     
     if (type === 'profile') {
       this.loadProfile();
     } else if (type === 'totals') {
       this.loadSummary();
     } else if (type === 'history') {
-      this.loadTransactionHistory();
+      this.loadTransactionHistory('none');
     } else if (type === 'editMaster') {
       this.loadMasterData();
     }
+  }
+  
+  switchHistoryType(type: 'invested' | 'goals') {
+    this.subType = type;
+    this.currentPage = 1; // Reset page number when switching history type
+    this.loadTransactionHistory('none');
   }
 
   closeCard() {
@@ -459,5 +659,9 @@ export class MenuBarComponent {
 
   calculatePercentage(amount: number, total: number): number {
     return total > 0 ? Number(((amount / total) * 100).toFixed(2)) : 0;
+  }
+
+  navigateToDashboard() {
+    this.router.navigate(['/dashboard']);
   }
 }

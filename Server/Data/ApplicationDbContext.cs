@@ -20,7 +20,51 @@ namespace Server.Data
         {
             base.OnModelCreating(modelBuilder);
 
-            // Configure entity properties and relationships here if needed
+            // Configure decimal properties for InvestedDetail
+            modelBuilder.Entity<InvestedDetail>()
+                .Property(e => e.Amount)
+                .HasPrecision(18, 2);
+            modelBuilder.Entity<InvestedDetail>()
+                .Property(e => e.Percentage)
+                .HasPrecision(5, 2);
+            modelBuilder.Entity<InvestedDetail>()
+                .Property(e => e.Target)
+                .HasPrecision(18, 2);
+
+            // Configure decimal properties for GoalDetail
+            modelBuilder.Entity<GoalDetail>()
+                .Property(e => e.Amount)
+                .HasPrecision(18, 2);
+            modelBuilder.Entity<GoalDetail>()
+                .Property(e => e.Percentage)
+                .HasPrecision(5, 2);
+            modelBuilder.Entity<GoalDetail>()
+                .Property(e => e.Target)
+                .HasPrecision(18, 2);
+
+            // Configure decimal properties for InvestmentTransaction
+            modelBuilder.Entity<InvestmentTransaction>()
+                .Property(e => e.Amount)
+                .HasPrecision(18, 2);
+            modelBuilder.Entity<InvestmentTransaction>()
+                .Property(e => e.Percentage)
+                .HasPrecision(5, 2);
+
+            // Configure decimal properties for GoalTransaction
+            modelBuilder.Entity<GoalTransaction>()
+                .Property(e => e.Amount)
+                .HasPrecision(18, 2);
+            modelBuilder.Entity<GoalTransaction>()
+                .Property(e => e.Percentage)
+                .HasPrecision(5, 2);
+
+            // Configure decimal properties for Totals
+            modelBuilder.Entity<Totals>()
+                .Property(e => e.TotalInvested)
+                .HasPrecision(18, 2);
+            modelBuilder.Entity<Totals>()
+                .Property(e => e.TotalGoals)
+                .HasPrecision(18, 2);
         }
     }
 }
