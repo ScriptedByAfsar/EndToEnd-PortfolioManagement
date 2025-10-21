@@ -266,7 +266,4 @@ export class DashboardComponent implements OnInit, OnDestroy, AfterViewInit {
     this.router.navigate(['/main']);
   }
 
-  navigateToTargets() {
-    this.router.navigate(['/targets']);
-  }
 }

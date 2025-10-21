@@ -199,6 +199,26 @@
   },
   {
     "ContainingType": "Server.Controllers.PortfolioController",
+    "Method": "GetGoalsDetails",
+    "RelativePath": "api/Portfolio/goals-details",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Server.Controllers.PortfolioController",
+    "Method": "GetInvestedDetails",
+    "RelativePath": "api/Portfolio/invested-details",
+    "HttpMethod": "GET",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Server.Controllers.PortfolioController",
     "Method": "SaveDetails",
     "RelativePath": "api/Portfolio/save-details",
     "HttpMethod": "POST",
@@ -240,6 +260,22 @@
       {
         "Name": "transaction",
         "Type": "Server.Models.InvestmentTransaction",
+        "IsRequired": true
+      }
+    ],
+    "ReturnTypes": []
+  },
+  {
+    "ContainingType": "Server.Controllers.PortfolioController",
+    "Method": "SaveTargets",
+    "RelativePath": "api/Portfolio/save-targets",
+    "HttpMethod": "POST",
+    "IsController": true,
+    "Order": 0,
+    "Parameters": [
+      {
+        "Name": "request",
+        "Type": "Server.Models.SaveTargetsRequest",
         "IsRequired": true
       }
     ],
